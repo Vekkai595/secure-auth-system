@@ -1,7 +1,8 @@
-"""initial schema"""
+"""Initial database schema."""
 
 from alembic import op
 import sqlalchemy as sa
+
 
 revision = '0001_initial'
 down_revision = None
@@ -10,6 +11,7 @@ depends_on = None
 
 
 def upgrade() -> None:
+    # Users
     op.create_table(
         'users',
         sa.Column('id', sa.Integer(), primary_key=True),
@@ -25,6 +27,7 @@ def upgrade() -> None:
     op.create_index('ix_users_email', 'users', ['email'], unique=True)
     op.create_index('ix_users_username', 'users', ['username'], unique=True)
 
+    # Active browser/device sessions
     op.create_table(
         'sessions',
         sa.Column('id', sa.Integer(), primary_key=True),
@@ -41,6 +44,7 @@ def upgrade() -> None:
     op.create_index('ix_sessions_device_id', 'sessions', ['device_id'])
     op.create_index('ix_sessions_current_refresh_jti', 'sessions', ['current_refresh_jti'], unique=True)
 
+    # Refresh tokens are stored server-side so they can be revoked.
     op.create_table(
         'refresh_tokens',
         sa.Column('id', sa.Integer(), primary_key=True),
@@ -58,6 +62,7 @@ def upgrade() -> None:
     op.create_index('ix_refresh_tokens_jti', 'refresh_tokens', ['jti'], unique=True)
     op.create_index('ix_refresh_tokens_token_family', 'refresh_tokens', ['token_family'])
 
+    # Login attempt history for auditing and brute-force analysis.
     op.create_table(
         'login_attempts',
         sa.Column('id', sa.Integer(), primary_key=True),
@@ -67,6 +72,8 @@ def upgrade() -> None:
         sa.Column('failure_reason', sa.String(length=255), nullable=True),
         sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.func.now()),
     )
+
+    # Security/audit trail.
     op.create_table(
         'audit_logs',
         sa.Column('id', sa.Integer(), primary_key=True),
@@ -76,6 +83,8 @@ def upgrade() -> None:
         sa.Column('metadata_json', sa.Text(), nullable=False),
         sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.func.now()),
     )
+
+    # Password reset tokens are stored as hashes, not raw tokens.
     op.create_table(
         'password_reset_tokens',
         sa.Column('id', sa.Integer(), primary_key=True),
