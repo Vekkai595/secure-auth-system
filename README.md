@@ -39,6 +39,7 @@ This project became a way to explore those ideas through implementation.
 ## Features
 
 ### Authentication
+
 - user registration with Argon2 password hashing
 - login using email or username
 - short-lived access tokens
@@ -47,12 +48,14 @@ This project became a way to explore those ideas through implementation.
 - database-backed token revocation
 
 ### Session management
+
 - active session listing
 - per-session revocation
 - logout from current session
 - logout from all sessions
 
 ### Security
+
 - rate limiting for repeated login attempts
 - login attempt logging
 - audit logging
@@ -60,6 +63,7 @@ This project became a way to explore those ideas through implementation.
 - security headers middleware
 
 ### Recovery flow
+
 - password reset token generation
 - password reset validation flow
 
@@ -76,50 +80,63 @@ app/
 ├── schemas/        # request/response validation
 ├── core/           # security, tokens, middleware, config
 └── db/             # database session management
+```
 
 The project follows a layered architecture to separate:
 
-transport logic
-business rules
-persistence
-infrastructure concerns
+- transport logic
+- business rules
+- persistence
+- infrastructure concerns
 
 This keeps the authentication flows easier to maintain and extend.
 
-Threat model summary
+---
+
+## Threat model summary
 
 This project attempts to reduce the impact of:
 
-brute-force login attempts
-credential stuffing
-stolen refresh token replay
-long-lived compromised sessions
-stale authentication persistence
+- brute-force login attempts
+- credential stuffing
+- stolen refresh token replay
+- long-lived compromised sessions
+- stale authentication persistence
 
 The refresh token system uses rotation and server-side revocation tracking to improve session control.
 
-Tech stack
-FastAPI
-SQLAlchemy
-PostgreSQL
-Redis
-Alembic
-Pydantic
-JWT (python-jose)
-Argon2 (passlib)
-Docker
-Pytest
-Run locally
+---
+
+## Tech stack
+
+- FastAPI
+- SQLAlchemy
+- PostgreSQL
+- Redis
+- Alembic
+- Pydantic
+- JWT / python-jose
+- Argon2 / passlib
+- Docker
+- Pytest
+
+---
+
+## Run locally
+
+```bash
 python -m venv .venv
-
 source .venv/bin/activate
-
 pip install -r requirements.txt
-
 cp .env.example .env
-
 uvicorn app.main:app --reload
-Example routes
+```
+
+---
+
+## Example routes
+
+```txt
 POST /api/v1/auth/register
 POST /api/v1/auth/login
 POST /api/v1/auth/refresh
@@ -129,8 +146,19 @@ POST /api/v1/auth/logout-all
 GET  /api/v1/users/me
 GET  /api/v1/sessions
 GET  /api/v1/health
-Testing
+```
+
+---
+
+## Testing
+
+```bash
 pytest
-Notes
-The current rate limiter includes an in-memory fallback to keep the project self-contained and easy to review locally.
-The password reset flow intentionally exposes reset tokens during development/demo usage. In production, tokens would only be delivered through email.
+```
+
+---
+
+## Notes
+
+- The current rate limiter includes an in-memory fallback to keep the project self-contained and easy to review locally.
+- The password reset flow intentionally exposes reset tokens during development/demo usage. In production, tokens would only be delivered through email.
