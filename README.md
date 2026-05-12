@@ -1,80 +1,136 @@
 # Secure Auth System
 
-A portfolio-grade authentication backend built with FastAPI and SQLAlchemy to demonstrate secure token lifecycle management, session tracking, brute-force mitigation, and clean service-oriented architecture.
+A portfolio-grade authentication backend built by Samuel Borba Cordeiro using FastAPI and SQLAlchemy to explore secure token lifecycle management, session control, brute-force mitigation, and service-oriented backend architecture.
+
+This project was designed to go beyond a basic JWT tutorial or CRUD API. The main goal was to study how modern authentication systems handle trust, session persistence, token revocation, and repeated abuse while keeping the architecture modular and maintainable.
+
+---
 
 ## Why this project exists
 
-I wanted a project that showed more than CRUD or a basic JWT tutorial. This system treats authentication as a computer science and security problem: how to model trust, rotate credentials safely, track sessions, revoke compromised tokens, and defend against repeated abuse.
+I wanted to build something that felt closer to a real backend system instead of a simple authentication demo.
 
-## Main CS ideas
+While studying backend development and security concepts, I became interested in questions like:
 
-- token lifecycle design
+- How are sessions managed securely?
+- How do refresh tokens work internally?
+- Why do modern systems rotate refresh tokens?
+- How can compromised sessions be revoked?
+- How do APIs defend against brute-force attacks?
+
+This project became a way to explore those ideas through implementation.
+
+---
+
+## Main concepts explored
+
+- JWT authentication
+- rotating refresh token architecture
 - stateless access vs stateful revocation
-- rate limiting as a bounded-time counting problem
-- session modelling
-- layered architecture and separation of concerns
-- security trade-offs between simplicity and control
+- session lifecycle management
+- layered backend architecture
+- brute-force mitigation
+- audit logging
+- request tracing
+- security-oriented middleware
+
+---
 
 ## Features
 
+### Authentication
 - user registration with Argon2 password hashing
-- login by email or username
+- login using email or username
 - short-lived access tokens
-- rotating refresh tokens with database-backed revocation
-- session listing and per-session revocation
-- logout-all support
-- password reset flow for demo and testing
-- audit logging and login attempt logging
-- request ID and security headers middleware
+- rotating refresh tokens
+- refresh token family tracking
+- database-backed token revocation
 
-## Project structure
+### Session management
+- active session listing
+- per-session revocation
+- logout from current session
+- logout from all sessions
 
-- `app/api/` HTTP layer only
-- `app/services/` business logic
-- `app/repositories/` database access
-- `app/models/` SQLAlchemy models
-- `app/core/` security, tokens, config, middleware
-- `tests/` behavior checks
+### Security
+- rate limiting for repeated login attempts
+- login attempt logging
+- audit logging
+- request ID middleware
+- security headers middleware
 
-## Threat model summary
+### Recovery flow
+- password reset token generation
+- password reset validation flow
 
-This project is designed to reduce the impact of:
+---
 
-- credential stuffing and brute force through rate limiting
-- long-lived session abuse through rotating refresh tokens
-- refresh token replay through server-side revocation tracking
-- stale session persistence through logout and logout-all operations
+## Architecture
 
-## Run locally
+```txt
+app/
+├── api/            # HTTP routes
+├── services/       # business logic
+├── repositories/   # database layer
+├── models/         # SQLAlchemy models
+├── schemas/        # request/response validation
+├── core/           # security, tokens, middleware, config
+└── db/             # database session management
 
-```bash
+The project follows a layered architecture to separate:
+
+transport logic
+business rules
+persistence
+infrastructure concerns
+
+This keeps the authentication flows easier to maintain and extend.
+
+Threat model summary
+
+This project attempts to reduce the impact of:
+
+brute-force login attempts
+credential stuffing
+stolen refresh token replay
+long-lived compromised sessions
+stale authentication persistence
+
+The refresh token system uses rotation and server-side revocation tracking to improve session control.
+
+Tech stack
+FastAPI
+SQLAlchemy
+PostgreSQL
+Redis
+Alembic
+Pydantic
+JWT (python-jose)
+Argon2 (passlib)
+Docker
+Pytest
+Run locally
 python -m venv .venv
+
 source .venv/bin/activate
+
 pip install -r requirements.txt
+
 cp .env.example .env
+
 uvicorn app.main:app --reload
-```
+Example routes
+POST /api/v1/auth/register
+POST /api/v1/auth/login
+POST /api/v1/auth/refresh
+POST /api/v1/auth/logout
+POST /api/v1/auth/logout-all
 
-## Example routes
-
-- `POST /api/v1/auth/register`
-- `POST /api/v1/auth/login`
-- `POST /api/v1/auth/refresh`
-- `POST /api/v1/auth/logout`
-- `POST /api/v1/auth/logout-all`
-- `GET /api/v1/users/me`
-- `GET /api/v1/sessions`
-- `GET /api/v1/health`
-
-## Notes
-
-- The current rate limiter uses an in-memory fallback to keep the project self-contained and easy to review. A Redis adapter can be plugged in later.
-- The password reset route intentionally returns the token so the flow is easy to test in a portfolio/demo setting. In a production deployment, this would be sent through email only.
-
-## Next upgrades
-
-- Redis-backed distributed rate limiter
-- MFA / TOTP
-- email verification workflow
-- admin reporting endpoints
-- GitHub Actions for lint, tests, and security checks
+GET  /api/v1/users/me
+GET  /api/v1/sessions
+GET  /api/v1/health
+Testing
+pytest
+Notes
+The current rate limiter includes an in-memory fallback to keep the project self-contained and easy to review locally.
+The password reset flow intentionally exposes reset tokens during development/demo usage. In production, tokens would only be delivered through email.
